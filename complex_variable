@@ -1,0 +1,23 @@
+Owen Kuemerle
+Assuming Tidal correctly sets the environment variables it says it does ($dtArchive, $tidalenv) and during the same shell session when the Ansible playbook is executed (meaning the env variables would be made available to Ansible), the values for the initial set of variables can be set like so:
+
+  vars:
+    mz_dtarchive: "{{ lookup('env','dtArchive') }}"
+    sql_server_address: "{{ tidal_env_info[lookup('env','tidalenv')].sql_server_address }}"
+    sql_server_username: "{{ tidal_env_info[lookup('env','tidalenv')].sql_server_username }}"
+    mz_user: "{{ tidal_env_info[lookup('env','tidalenv')].mz_user }}"
+    tidal_env_info:
+      dev:
+        sql_server_address: xxxxx
+        sql_server_username: xxxxx1
+        mz_user: xxxxx2
+      uat:
+        sql_server_address: yyyyy
+        sql_server_username: yyyyy1
+        mz_user: yyyyy2
+      prod:
+        sql_server_address: zzzzz
+        sql_server_username: zzzzz1
+        mz_user: zzzzz2
+
+This Ansible code performs a lookup of the environment variables Tidal sets and attempts to map out the values required for the remainder of the playbook according to the tidal_env_info complex variable. Take care to ensure spacing is correct when pasting into the playbook. Please let me know if you have any questions.

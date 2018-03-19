@@ -1,0 +1,47 @@
+---
+  - name: check sudo files syntax
+    tags: sudo00
+    connection: local
+    shell: "for FILE in `/bin/ls -1 vars/user_sudo/*`; do /usr/sbin/visudo -cf $FILE; done"
+    register: sudo_check
+    changed_when: False
+    failed_when: "'syntax error' in sudo_check.stderr"
+    any_errors_fatal: True
+  
+  - name: Ensure default sudo files /etc/sudoers.d
+    tags: sudo01
+    copy: >
+      src=vars/user_sudo/default
+      dest=/etc/sudoers.d/default
+      backup=no
+      owner=root
+      group=root
+      mode=0440
+  
+  - name: Ensure user sudo files /etc/sudoers.d
+    tags: sudo02
+    copy: >
+      src=vars/user_sudo/{{ item  }}
+      dest=/etc/sudoers.d/{{ item }}
+      backup=no
+      owner=root
+      group=root
+      mode=0440
+    with_items: '{{ sudo_accounts|default([]) }}'
+  
+  - name: List sudo files
+    tags: sudo03
+    shell: /bin/ls -1 /etc/sudoers.d
+    register: sfiles
+    changed_when: false
+  
+  - set_fact: authsudo="{{ sudo_accounts|default([])|list + defaccts|default([])|list }} + [ 'default' ]"
+  
+  - name: Remove unmanaged sudo files
+    tags: sudo04
+    file: >
+      path=/etc/sudoers.d/{{ item }}
+      state=absent
+    with_items: "{{ sfiles.stdout_lines }}"
+    when: item not in authsudo
+...  

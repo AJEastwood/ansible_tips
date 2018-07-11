@@ -1,0 +1,17 @@
+---
+## Example by Sean Sullivan ssulliva@redhat.com
+## This was created to used a gathered boolean fact in ansible tower, and to limit hosts by that variable.
+## Can be used with any gathered fact, example is just using boolean for ease of use. 
+
+- name: Hosts Grouping
+  hosts: all
+  gather_facts: false
+  tasks:
+  - group_by:
+      key: precheckerror_{{ precheckerror | lower}}
+
+- name: Use a variable or fact for a limit without a limit
+  hosts: precheckerror_false
+  max_fail_percentage: 10
+  roles:
+    - fastpatch
